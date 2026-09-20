@@ -1,0 +1,20 @@
+WITH combined_data AS (
+SELECT * FROM nyc_311_reference r
+LEFT JOIN nyc_311_2016 a ON r.communityboardid = a.communityboardid
+UNION ALL
+SELECT * FROM nyc_311_reference r
+LEFT JOIN nyc_311_2017 b ON r.communityboardid = b.communityboardid
+UNION ALL
+SELECT * FROM nyc_311_reference r
+LEFT JOIN nyc_311_2018 c ON r.communityboardid = c.communityboardid
+UNION ALL
+SELECT * FROM nyc_311_reference r
+LEFT JOIN nyc_311_2019 d ON r.communityboardid = d.communityboardid
+UNION ALL
+SELECT * FROM nyc_311_reference r
+LEFT JOIN nyc_311_2020 e ON r.communityboardid = e.communityboardid
+)
+SELECT borough, COUNT(borough) AS total_requests
+FROM combined_data
+GROUP BY borough
+ORDER BY total_requests DESC;
