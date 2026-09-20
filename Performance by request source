@@ -1,0 +1,24 @@
+WITH combined_data AS (
+SELECT source, closed_date, created_date
+FROM nyc_311_2016
+GROUP BY source, closed_date, created_date
+UNION ALL
+SELECT source, closed_date, created_date
+FROM nyc_311_2017
+GROUP BY source, closed_date, created_date
+UNION ALL
+SELECT source, closed_date, created_date
+FROM nyc_311_2018
+GROUP BY source, closed_date, created_date
+UNION ALL
+SELECT source, closed_date, created_date
+FROM nyc_311_2019
+GROUP BY source, closed_date, created_date
+UNION ALL
+SELECT source, closed_date, created_date
+FROM nyc_311_2020
+GROUP BY source, closed_date, created_date
+)
+SELECT source, COUNT(source) AS requests, ROUND(AVG(DATE(closed_date) - DATE(created_date)), 2) AS avg_resolution_days
+FROM combined_data
+GROUP BY source;
