@@ -1,0 +1,25 @@
+WITH combined_data AS (
+SELECT facilitytype
+FROM nyc_311_2016
+GROUP BY facilitytype
+UNION ALL
+SELECT facilitytype
+FROM nyc_311_2017
+GROUP BY facilitytype
+UNION ALL
+SELECT facilitytype
+FROM nyc_311_2018
+GROUP BY facilitytype
+UNION ALL
+SELECT facilitytype
+FROM nyc_311_2019
+GROUP BY facilitytype
+UNION ALL
+SELECT facilitytype
+FROM nyc_311_2020
+GROUP BY facilitytype
+)
+SELECT facilitytype, COUNT(*) AS total_requests
+FROM combined_data
+GROUP BY facilitytype
+ORDER BY total_requests DESC;

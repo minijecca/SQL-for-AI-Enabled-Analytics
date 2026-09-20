@@ -1,0 +1,58 @@
+WITH combined_data AS (
+SELECT communityboardid, DATE(closed_date) - DATE (created_date) AS avg_resolution
+FROM nyc_311_2016
+WHERE closed_date IS NOT NULL
+GROUP BY communityboardid, closed_date, created_date
+UNION ALL
+SELECT communityboardid, DATE(closed_date) - DATE (created_date) AS avg_resolution
+FROM nyc_311_2017
+WHERE closed_date IS NOT NULL
+GROUP BY communityboardid, closed_date, created_date
+UNION ALL
+SELECT communityboardid, DATE(closed_date) - DATE (created_date) AS avg_resolution
+FROM nyc_311_2018
+WHERE closed_date IS NOT NULL
+GROUP BY communityboardid, closed_date, created_date
+UNION ALL
+SELECT communityboardid, DATE(closed_date) - DATE (created_date) AS avg_resolution
+FROM nyc_311_2019
+WHERE closed_date IS NOT NULL
+GROUP BY communityboardid, closed_date, created_date
+UNION ALL
+SELECT communityboardid, DATE(closed_date) - DATE (created_date) AS avg_resolution
+FROM nyc_311_2020
+WHERE closed_date IS NOT NULL
+GROUP BY communityboardid, closed_date, created_date
+),
+
+combined_borough AS (
+SELECT r.communityboardid, borough
+FROM nyc_311_reference r
+LEFT JOIN nyc_311_2016 a ON r.communityboardid = a.communityboardid
+GROUP BY r.communityboardid, borough
+UNION ALL
+SELECT r.communityboardid, borough
+FROM nyc_311_reference r
+LEFT JOIN nyc_311_2017 b ON r.communityboardid = b.communityboardid
+GROUP BY r.communityboardid, borough
+UNION ALL
+SELECT r.communityboardid, borough
+FROM nyc_311_reference r
+LEFT JOIN nyc_311_2018 c ON r.communityboardid = c.communityboardid
+GROUP BY r.communityboardid, borough
+UNION ALL
+SELECT r.communityboardid, borough
+FROM nyc_311_reference r
+LEFT JOIN nyc_311_2019 d ON r.communityboardid = d.communityboardid
+GROUP BY r.communityboardid, borough
+UNION ALL
+SELECT r.communityboardid, borough
+FROM nyc_311_reference r
+LEFT JOIN nyc_311_2020 e ON r.communityboardid = e.communityboardid
+GROUP BY r.communityboardid, borough
+)
+SELECT DISTINCT r.borough, ROUND(AVG(combined_data.avg_resolution), 2) AS avg_resolution_days
+FROM nyc_311_reference r
+CROSS JOIN combined_data
+GROUP BY r.borough
+ORDER BY r.borough DESC;

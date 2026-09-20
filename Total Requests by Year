@@ -1,0 +1,20 @@
+WITH combined_data AS (	
+    SELECT created_date FROM nyc_311_2016	
+    UNION ALL	
+    SELECT created_date FROM nyc_311_2017	
+    UNION ALL	
+    SELECT created_date FROM nyc_311_2018	
+UNION ALL	
+    SELECT created_date FROM nyc_311_2019	
+    UNION ALL	
+    SELECT created_date FROM nyc_311_2020	
+)	
+SELECT 	
+    EXTRACT(YEAR FROM created_date) AS record_year,	
+    COUNT(*) AS total	
+FROM 	
+    combined_data	
+GROUP BY 	
+    EXTRACT(YEAR FROM created_date)	
+ORDER BY 	
+    record_year;	
