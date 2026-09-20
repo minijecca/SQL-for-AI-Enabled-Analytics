@@ -1,0 +1,37 @@
+WITH return_summary AS (
+    SELECT
+        order_id,
+        product_id,
+        reason_returned,
+        SUM(return_quantity) AS returned_units
+    FROM Returns
+    GROUP BY
+        order_id,
+        product_id,
+        reason_returned
+)
+SELECT
+    r.region,
+    p.category,
+    p.sub_category,
+    rs.reason_returned,
+    SUM(rs.returned_units) AS returned_units,
+    SUM(o.quantity) AS sold_units,
+    SUM(rs.returned_units) * 1.0
+        / NULLIF(SUM(o.quantity), 0) AS unit_return_rate,
+    SUM(o.sales) AS associated_sales,
+    SUM(o.profit) AS associated_profit
+FROM return_summary AS rs
+INNER JOIN Orders AS o
+    ON rs.order_id = o.order_id
+   AND rs.product_id = o.product_id
+LEFT JOIN Regions AS r
+    ON o.region_id = r.region_id
+LEFT JOIN Products AS p
+    ON o.product_id = p.product_id
+GROUP BY
+    r.region,
+    p.category,
+    p.sub_category,
+    rs.reason_returned
+ORDER BY returned_units DESC;
