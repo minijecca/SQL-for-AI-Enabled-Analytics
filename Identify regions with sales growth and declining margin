@@ -1,0 +1,56 @@
+WITH regional_year AS (
+    SELECT
+        EXTRACT(YEAR FROM o.order_date) AS order_year,
+        r.region,
+        SUM(o.sales) AS sales,
+        SUM(o.profit) AS profit,
+        SUM(o.profit) / NULLIF(SUM(o.sales), 0) AS profit_margin
+    FROM Orders AS o
+    LEFT JOIN Regions AS r
+        ON o.region_id = r.region_id
+    GROUP BY
+        order_year,
+        r.region
+),
+regional_comparison AS (
+    SELECT
+        order_year,
+        region,
+        sales,
+        profit,
+        profit_margin,
+        LAG(sales) OVER (
+            PARTITION BY region ORDER BY order_year
+        ) AS prior_year_sales,
+        LAG(profit) OVER (
+            PARTITION BY region ORDER BY order_year
+        ) AS prior_year_profit,
+        LAG(profit_margin) OVER (
+            PARTITION BY region ORDER BY order_year
+        ) AS prior_year_margin
+    FROM regional_year
+)
+SELECT
+    order_year,
+    region,
+    sales,
+    profit,
+    profit_margin,
+    sales - prior_year_sales AS sales_change,
+    profit - prior_year_profit AS profit_change,
+    profit_margin - prior_year_margin AS margin_change,
+    CASE
+        WHEN prior_year_sales IS NULL THEN 'First observed year'
+        WHEN sales > prior_year_sales
+             AND profit_margin < prior_year_margin
+            THEN 'Sales up, margin down'
+        WHEN sales > prior_year_sales
+             AND profit_margin >= prior_year_margin
+            THEN 'Profitable growth'
+        WHEN sales <= prior_year_sales
+             AND profit_margin < prior_year_margin
+            THEN 'Sales and margin down'
+        ELSE 'Mixed result'
+    END AS performance_status
+FROM regional_comparison
+ORDER BY region, order_year;
