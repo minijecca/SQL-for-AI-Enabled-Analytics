@@ -1,0 +1,19 @@
+WITH combined_data AS(
+    SELECT status
+FROM nyc_311_2016
+UNION ALL
+    SELECT status
+FROM nyc_311_2017
+    UNION ALL
+    SELECT status
+FROM nyc_311_2018
+UNION ALL
+    SELECT status
+FROM nyc_311_2019
+    UNION ALL
+    SELECT status
+FROM nyc_311_2020
+)
+SELECT status, COUNT(*) AS total_requests
+FROM combined_data
+GROUP BY status;
