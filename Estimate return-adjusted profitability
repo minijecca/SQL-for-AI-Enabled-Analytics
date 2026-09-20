@@ -1,0 +1,47 @@
+WITH return_summary AS (
+    SELECT
+        order_id,
+        product_id,
+        SUM(return_quantity) AS returned_units
+    FROM Returns
+    GROUP BY order_id, product_id
+),
+return_adjusted_lines AS (
+    SELECT
+        o.order_id,
+        o.product_id,
+        o.region_id,
+        o.sales,
+        o.profit,
+        o.quantity,
+        COALESCE(rs.returned_units, 0) AS returned_units,
+        CASE
+            WHEN o.quantity > 0
+            THEN o.sales * COALESCE(rs.returned_units, 0) / o.quantity
+            ELSE 0
+        END AS estimated_returned_sales,
+        CASE
+            WHEN o.quantity > 0
+            THEN o.profit * COALESCE(rs.returned_units, 0) / o.quantity
+            ELSE 0
+        END AS estimated_returned_profit
+    FROM Orders AS o
+    LEFT JOIN return_summary AS rs
+        ON o.order_id = rs.order_id
+       AND o.product_id = rs.product_id
+)
+SELECT
+    r.region,
+    SUM(ral.sales) AS recorded_sales,
+    SUM(ral.profit) AS recorded_profit,
+    SUM(ral.estimated_returned_sales) AS estimated_returned_sales,
+    SUM(ral.estimated_returned_profit) AS estimated_returned_profit,
+    SUM(ral.sales) - SUM(ral.estimated_returned_sales)
+        AS estimated_return_adjusted_sales,
+    SUM(ral.profit) - SUM(ral.estimated_returned_profit)
+        AS estimated_return_adjusted_profit
+FROM return_adjusted_lines AS ral
+LEFT JOIN Regions AS r
+    ON ral.region_id = r.region_id
+GROUP BY r.region
+ORDER BY estimated_return_adjusted_profit ASC;
