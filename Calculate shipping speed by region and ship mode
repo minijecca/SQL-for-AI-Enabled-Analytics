@@ -1,0 +1,17 @@
+SELECT
+    r.region,
+    o.ship_mode,
+    AVG(CAST(CAST(o.ship_date AS DATE) - CAST(o.order_date AS DATE) AS DECIMAL(10, 2)))
+        AS average_ship_days,
+    MIN(CAST(o.ship_date AS DATE) - CAST(o.order_date AS DATE))
+        AS minimum_ship_days,
+    MAX(CAST(o.ship_date AS DATE) - CAST(o.order_date AS DATE))
+        AS maximum_ship_days,
+    COUNT(*) AS order_lines
+FROM Orders AS o
+LEFT JOIN Regions AS r
+    ON o.region_id = r.region_id
+GROUP BY
+    r.region,
+    o.ship_mode
+ORDER BY r.region, average_ship_days DESC;

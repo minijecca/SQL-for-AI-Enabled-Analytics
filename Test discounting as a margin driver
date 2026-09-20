@@ -1,0 +1,36 @@
+WITH discount_lines AS (
+    SELECT
+        r.region,
+        CASE
+            WHEN o.discount = 0 THEN '0%'
+            WHEN o.discount <= 0.10 THEN '1-10%'
+            WHEN o.discount <= 0.20 THEN '11-20%'
+            WHEN o.discount <= 0.30 THEN '21-30%'
+            ELSE '31%+'
+        END AS discount_band,
+        CASE
+            WHEN o.discount = 0 THEN 1
+            WHEN o.discount <= 0.10 THEN 2
+            WHEN o.discount <= 0.20 THEN 3
+            WHEN o.discount <= 0.30 THEN 4
+            ELSE 5
+        END AS discount_sort,
+        o.sales,
+        o.profit,
+        o.quantity
+    FROM Orders AS o
+    LEFT JOIN Regions AS r
+        ON o.region_id = r.region_id
+)
+SELECT
+    region,
+    discount_band,
+    SUM(sales) AS sales,
+    SUM(profit) AS profit,
+    SUM(profit) / NULLIF(SUM(sales), 0) AS profit_margin,
+    SUM(quantity) AS units_sold,
+    COUNT(*) AS order_lines,
+    SUM(CASE WHEN profit < 0 THEN 1 ELSE 0 END) AS loss_making_lines
+FROM discount_lines
+GROUP BY region, discount_band, discount_sort
+ORDER BY region, discount_sort;

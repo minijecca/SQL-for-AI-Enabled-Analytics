@@ -1,0 +1,47 @@
+WITH category_year AS (
+    SELECT
+        EXTRACT(YEAR FROM o.order_date) AS order_year,
+        r.region,
+        p.category,
+        SUM(o.sales) AS sales,
+        SUM(o.profit) AS profit,
+        SUM(o.profit) / NULLIF(SUM(o.sales), 0) AS profit_margin
+    FROM Orders AS o
+    LEFT JOIN Regions AS r
+        ON o.region_id = r.region_id
+    LEFT JOIN Products AS p
+        ON o.product_id = p.product_id
+    GROUP BY
+        order_year,
+        r.region,
+        p.category
+),
+category_comparison AS (
+    SELECT
+        order_year,
+        region,
+        category,
+        sales,
+        profit,
+        profit_margin,
+        LAG(sales) OVER (
+            PARTITION BY region, category ORDER BY order_year
+        ) AS prior_year_sales,
+        LAG(profit_margin) OVER (
+            PARTITION BY region, category ORDER BY order_year
+        ) AS prior_year_margin
+    FROM category_year
+)
+SELECT
+    order_year,
+    region,
+    category,
+    sales,
+    profit,
+    profit_margin,
+    sales - prior_year_sales AS sales_change,
+    profit_margin - prior_year_margin AS margin_change
+FROM category_comparison
+WHERE sales > prior_year_sales
+  AND profit_margin < prior_year_margin
+ORDER BY margin_change ASC;

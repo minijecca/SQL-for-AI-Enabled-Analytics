@@ -1,0 +1,18 @@
+SELECT
+    r.salesperson,
+    r.region,
+    r.sub_region,
+    SUM(o.sales) AS sales,
+    SUM(o.profit) AS profit,
+    SUM(o.profit) / NULLIF(SUM(o.sales), 0) AS profit_margin,
+    AVG(o.discount) AS average_discount,
+    COUNT(DISTINCT o.order_id) AS distinct_orders,
+    SUM(CASE WHEN o.profit < 0 THEN 1 ELSE 0 END) AS loss_making_lines
+FROM Orders AS o
+LEFT JOIN Regions AS r
+    ON o.region_id = r.region_id
+GROUP BY
+    r.salesperson,
+    r.region,
+    r.sub_region
+ORDER BY profit_margin ASC;

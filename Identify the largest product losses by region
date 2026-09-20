@@ -1,0 +1,27 @@
+SELECT
+    r.region,
+    r.sub_region,
+    p.product_id,
+    p.product_name,
+    p.category,
+    p.sub_category,
+    SUM(o.sales) AS sales,
+    SUM(o.profit) AS profit,
+    SUM(o.profit) / NULLIF(SUM(o.sales), 0) AS profit_margin,
+    AVG(o.discount) AS average_discount,
+    SUM(o.quantity) AS units_sold,
+    COUNT(DISTINCT o.order_id) AS distinct_orders
+FROM Orders AS o
+LEFT JOIN Regions AS r
+    ON o.region_id = r.region_id
+LEFT JOIN Products AS p
+    ON o.product_id = p.product_id
+GROUP BY
+    r.region,
+    r.sub_region,
+    p.product_id,
+    p.product_name,
+    p.category,
+    p.sub_category
+HAVING SUM(o.profit) < 0
+ORDER BY profit ASC;
