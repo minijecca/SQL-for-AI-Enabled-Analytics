@@ -1,0 +1,21 @@
+WITH requests_age AS(
+    SELECT status, closed_date, created_date, DATE(closed_date) - DATE(created_date) AS avg_days
+FROM nyc_311_2016
+UNION ALL
+    SELECT status, closed_date, created_date, DATE(closed_date) - DATE(created_date) AS avg_days
+FROM nyc_311_2017
+    UNION ALL
+    SELECT status, closed_date, created_date, DATE(closed_date) - DATE(created_date) AS avg_days
+FROM nyc_311_2018
+UNION ALL
+    SELECT status, closed_date, created_date, DATE(closed_date) - DATE(created_date) AS avg_days
+FROM nyc_311_2019
+    UNION ALL
+    SELECT status, closed_date, created_date, DATE(closed_date) - DATE(created_date) AS avg_days  
+FROM nyc_311_2020
+)
+SELECT status, COUNT(avg_days) AS number_requests_over_5_days, MAX(DATE(closed_date)-DATE(created_date)) AS total_days_of_oldest_request 
+FROM requests_age
+WHERE avg_days > 5 AND status != 'Closed'
+GROUP BY status
+ORDER BY status ASC;
